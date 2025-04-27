@@ -5,7 +5,7 @@ import re
 def fetch_ips():
     # 示例：从不同API或网页抓取分类IP
     networks = {
-        "电信": "https://example.com/telecom",
+        "电信": "https://monitor.gacjie.cn/page/cloudflare/ipv4.html",
         "联通": "https://example.com/unicom",
         "移动": "https://example.com/mobile"
     }
