@@ -1,44 +1,36 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import os
 
-# 目标URL列表
-urls = ['https://monitor.gacjie.cn/page/cloudflare/ipv4.html', 
-        'https://ip.164746.xyz'
-        ]
+def fetch_ips():
+    # 示例：从不同API或网页抓取分类IP
+    networks = {
+        "电信": "https://example.com/telecom",
+        "联通": "https://example.com/unicom",
+        "移动": "https://example.com/mobile"
+    }
+    
+    ip_dict = {}
+    for net, url in networks.items():
+        try:
+            response = requests.get(url, timeout=10)
+            # 使用正则或BeautifulSoup提取IP（根据实际页面调整）
+            ips = re.findall(r'\d+\.\d+\.\d+\.\d+', response.text)
+            ip_dict[net] = ips
+        except Exception as e:
+            print(f"Failed to fetch {net} IPs: {e}")
+            ip_dict[net] = []
+    return ip_dict
 
-# 正则表达式用于匹配IP地址
-ip_pattern = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
+def write_ips(ip_dict):
+    with open("ip.txt", "w", encoding="utf-8") as f:
+        for net, ips in ip_dict.items():
+            if ips:
+                f.write(f"# {net} IP列表\n")
+                for ip in ips:
+                    f.write(f"{ip}\n")
+                f.write("\n")  # 添加空行分隔不同网络
 
-# 检查ip.txt文件是否存在,如果存在则删除它
-if os.path.exists('ip.txt'):
-    os.remove('ip.txt')
-
-# 创建一个文件来存储IP地址
-with open('ip.txt', 'w') as file:
-    for url in urls:
-        # 发送HTTP请求获取网页内容
-        response = requests.get(url)
-        
-        # 使用BeautifulSoup解析HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # 根据网站的不同结构找到包含IP地址的元素
-        if url == 'https://monitor.gacjie.cn/page/cloudflare/ipv4.html':
-            elements = soup.find_all('tr')
-        elif url == 'https://ip.164746.xyz':
-            elements = soup.find_all('tr')
-        else:
-            elements = soup.find_all('li')
-        
-        # 遍历所有元素,查找IP地址
-        for element in elements:
-            element_text = element.get_text()
-            ip_matches = re.findall(ip_pattern, element_text)
-            
-            # 如果找到IP地址,则写入文件
-            for ip in ip_matches:
-                file.write(ip + '\n')
-
-print('IP地址已保存到ip.txt文件中。')
+if __name__ == "__main__":
+    ip_dict = fetch_ips()
+    write_ips(ip_dict)
